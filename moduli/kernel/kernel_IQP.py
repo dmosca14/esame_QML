@@ -89,7 +89,7 @@ def kernel(set_preparato, numero_features, numero_ripetizioni, pattern):
     @qml.qnode(dev_IQP)
     def circuito_quantistico(campione_1, campione_2): 
 
-        # Qui compare l'iperparametro quantistico di questo encoding n_repeats, che controlla l'espressività del circuito.
+        # Qui compare l'iperparametro quantistico di questo encoding n_repeats, che controlla l'espressività del circuito, e pattern.
 
         qml.IQPEmbedding(features = campione_1, wires = range(numero_qubits_IQP), n_repeats = numero_ripetizioni, pattern = pattern)
         qml.adjoint(qml.IQPEmbedding)(features = campione_2, wires = range(numero_qubits_IQP), n_repeats = numero_ripetizioni, pattern = pattern) 
