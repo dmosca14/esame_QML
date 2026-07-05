@@ -5,8 +5,6 @@ import itertools
 import pandas as pd
 import numpy as np
 import time
-
-# Ottimizzazione CPU (OpenMP)
 os.environ["OMP_NUM_THREADS"] = "4"
 
 qml_code_dir = Path.cwd().parent
@@ -23,13 +21,11 @@ from moduli.qsvm.configurazione_cartella_run import cartella_run_attuale
 from moduli.kernel import kernel_amplitude, kernel_angle, kernel_basis, kernel_IQP, kernel_rbf, kernel_projected
 from moduli.metriche import kernel_target_alignment, coefficiente_geometrico
 
-# ==========================================
-# 1. Configurazione Globale
-# ==========================================
+# Configurazione 
 numero_campioni = 200
 numero_features = 4
 
-frazione_dati_per_train = 0.80  # Rimosso il validation. L'80% va nel CV, il 20% nel Test.
+frazione_dati_per_train = 0.80  
 frazione_dati_per_test = 0.20
 griglia_C = [1.0, 10.0, 100.0, 1000.0]
 
@@ -80,26 +76,24 @@ def costruisci_configurazioni_encoding(pattern_catena, pattern_tutti):
 
 risultati_globali = []
 
-# ==========================================
-# 2. Loop di Esecuzione
-# ==========================================
+# loop di esecuzione
 for nome_ds, data in datasets.items():
     print(f"\n--- Elaborazione: {nome_ds} ---")
 
-    # Estrazione di 2 set RAW
+    # estrazione test set
     train_set_raw, test_set_raw = preprocessa_dataset(data, frazione_dati_per_train)
     y_train, y_test = train_set_raw[1], test_set_raw[1]
 
-    # PCA eseguita esplicitamente qui SOLO per il calcolo della Baseline Classica
+    # PCA eseguita esplicitamente qui SOLO per il calcolo della versione classica (su quelle quantistiche facciamo cv)
     train_set_pca, test_set_pca, num_features = prepara_dataset(train_set_raw, test_set_raw, numero_features)
 
-    # Pattern IQP ricalcolato SEMPRE, in base al num_features reale di
-    # questo specifico dataset (variabili locali, non piu' globali/di modulo)
+    # Pattern IQP ricalcolato sempre, in base al num_features reale di
+    # questo specifico dataset 
     pattern_catena = [[i, i + 1] for i in range(num_features - 1)]
     pattern_tutti = [list(coppia) for coppia in itertools.combinations(range(num_features), 2)]
     configurazioni_encoding = costruisci_configurazioni_encoding(pattern_catena, pattern_tutti)
 
-    # Baseline Classica RBF (ora accetta 2 set)
+    # versione classica con rbf
     _, matrici_gram_rbf = kernel_rbf.kernel(train_set_pca, test_set_pca)
     K_classico_train = matrici_gram_rbf[0]
     kta_rbf = kernel_target_alignment(K_classico_train, y_train)
@@ -111,13 +105,12 @@ for nome_ds, data in datasets.items():
         for ip_q in combinazioni:
             ip_q_griglia = {k: [v] for k, v in ip_q.items()}
 
-            # Chiamata allineata a 7 argomenti
+            # allenamento per questi iperparametri quantistici e classici
             modello, set_adattato, matrici_gram = costruisci_qsvm(
                 train_set_raw, test_set_raw, num_features, config["modulo"],
                 ip_q_griglia, {"C": griglia_C}, nome_ds
             )
 
-            # Le matrici adesso sono solo 2 (Train e Test)
             K_train_q, K_test_q = matrici_gram
 
             risultati_globali.append({
@@ -134,9 +127,7 @@ for nome_ds, data in datasets.items():
 
     pd.DataFrame(risultati_globali).to_csv(os.path.join(cartella_run_attuale, "risultati_parziali.csv"), index=False)
 
-# ==========================================
-# 3. Output
-# ==========================================
+# Output
 df = pd.DataFrame(risultati_globali)
 print(df.to_string(index=False))
 
