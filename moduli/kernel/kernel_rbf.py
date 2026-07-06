@@ -6,6 +6,7 @@ from ..metriche import kernel_target_alignment
 nome_encoding = "RBF Classico"
 
 def kernel(train_set, test_set, gammas=None):
+    
     if gammas is None:
         gammas = np.logspace(-3, 2, 20)
         

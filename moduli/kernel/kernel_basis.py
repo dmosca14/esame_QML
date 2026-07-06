@@ -5,6 +5,7 @@ from .base import applica_minmax_con_margine, alloca_device, calcola_matrici_gra
 nome_encoding = "Basis Encoding"
 
 def converti_in_binario_numero_reale(dati, tau):
+    
     massimo_valore = (2**tau) - 1
     dati_interi = np.round(dati * massimo_valore).astype(np.uint8)
     matrice_8bit = np.unpackbits(dati_interi[:, :, np.newaxis], axis=2)

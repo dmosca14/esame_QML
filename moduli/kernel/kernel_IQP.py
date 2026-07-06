@@ -5,6 +5,7 @@ from .base import applica_minmax_con_margine, alloca_device, calcola_matrici_gra
 nome_encoding = "IQP Encoding"
 
 def kernel(train_set, test_set, numero_features, numero_ripetizioni, pattern):
+    
     train_adattato, test_adattato = applica_minmax_con_margine(
         train_set, test_set, feature_range=(-0.9, 0.9), limite_inf=-1.0, limite_sup=1.0
     )

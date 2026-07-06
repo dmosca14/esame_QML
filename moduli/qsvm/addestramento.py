@@ -15,7 +15,8 @@ def addestramento(nome_encoding, train_set_raw, test_set_raw, numero_features, m
     conteggio_classi = np.unique(y_cv_raw, return_counts = True)[1]
     numero_fold_effettivo = min(numero_fold_cv, int(conteggio_classi.min()))
 
-    # divido in 5 fold
+    # Divisione in 5 fold.
+
     validatore_cv = StratifiedKFold(n_splits = numero_fold_effettivo, shuffle = True, random_state = 42)
     indici_fold = list(validatore_cv.split(X_cv_raw, y_cv_raw)) 
 
@@ -28,25 +29,31 @@ def addestramento(nome_encoding, train_set_raw, test_set_raw, numero_features, m
     storico_risultati_addestramento = [] 
 
     totale_combinazioni = len(griglia_quantistica) * len(griglia_classica)
-    with tqdm(total = totale_combinazioni, desc = f"Addestramento ({numero_fold_effettivo}-fold CV)", bar_format = "{l_bar}{bar}| {n_fmt}/{total_fmt}") as barra:
+    with tqdm(total = totale_combinazioni, desc = f"Addestramento ({numero_fold_effettivo}-fold CV)", bar_format = "{l_bar}{bar}| {n_fmt}/{total_fmt}\n") as barra:
         
         for combinazione_iperparametri_quantistici in griglia_quantistica:
             tempo_inizio_kernel = time.time()
 
-            # ora iteriamo sui vari fold            
+            # Iterazione sui vari fold.
+        
             matrici_gram_folds = []
             for indici_train_fold, indici_val_fold in indici_fold:
-                # estraggo i fold raw
+
+                # Estrazione dei fold raw.
+                
                 train_fold_raw = (X_cv_raw[indici_train_fold], y_cv_raw[indici_train_fold])
                 val_fold_raw = (X_cv_raw[indici_val_fold], y_cv_raw[indici_val_fold])
 
-                # standardizzo e applico pca
+                # Standardizzazione e applicazione della PCA.
+
                 train_fold_pca, val_fold_pca, _ = prepara_dataset(train_fold_raw, val_fold_raw, numero_features)
 
-                # applico encoding
+                # Applicazione dell'encoding.
+
                 _, matrici_gram_fold, _ = modulo_encoding.kernel(train_fold_pca, val_fold_pca, numero_features, **combinazione_iperparametri_quantistici)
                 
-                # matrici_gram_fold[0] è Train vs Train, [1] è Val vs Train
+                # matrici_gram_fold[0] è Train vs Train, [1] è Val vs Train.
+
                 matrici_gram_folds.append((matrici_gram_fold[0], matrici_gram_fold[1], y_cv_raw[indici_train_fold], y_cv_raw[indici_val_fold]))
             
             tempo_kernel = time.time() - tempo_inizio_kernel 
@@ -55,7 +62,9 @@ def addestramento(nome_encoding, train_set_raw, test_set_raw, numero_features, m
                 tempo_inizio_SVM = time.time()
 
                 punteggi_fold = []
-                # utilizziamo i kernel già calcolati fold-by-fold
+
+                # Utilizziamo i kernel già calcolati fold-by-fold.
+                
                 for K_train_fold, K_val_fold, y_train_f, y_val_f in matrici_gram_folds:
                     modello_fold = SVC(kernel = "precomputed", **combinazione_iperparametri_classici)
                     modello_fold.fit(K_train_fold, y_train_f)
@@ -88,9 +97,9 @@ def addestramento(nome_encoding, train_set_raw, test_set_raw, numero_features, m
 
                 barra.update(1)
 
-    # RIADDESTRAMENTO FINALE DEL MIGLIOR MODELLO SULL'INTERO SET
-    
-    # Adesso calcoliamo PCA e Scaling un'ultima volta per l'intero set (Train + Test test finale)
+    # Riaddestramento finale del miglior modello sull'intero set.
+    # Scaling e calcolo della PCA eseguito un'ultima volta, per l'intero set (Train + Test test finale)
+
     train_pca_finale, test_pca_finale, _ = prepara_dataset(train_set_raw, test_set_raw, numero_features)
     
     miglior_set_adattato, migliori_matrici_gram, _ = modulo_encoding.kernel(
@@ -102,8 +111,9 @@ def addestramento(nome_encoding, train_set_raw, test_set_raw, numero_features, m
     miglior_modello = SVC(kernel = "precomputed", **migliori_iperparametri_classici)
     miglior_modello.fit(K_train_finale, y_cv_raw)
 
-    # STAMPA NEL TERMINALE DELLA MIGLIOR CONFIGURAZIONE DI IPERPARAMETRI TROVATA, E RELATIVO F1-SCORE.
-    if migliori_iperparametri_quantistici: # Scrivendo così, diciamo che, in caso non ce ne siano, non viene stampato nulla. 
+    # Stampa nel terminale della miglior configurazione di iperparametri trovata, e relativo F1-score.
+
+    if migliori_iperparametri_quantistici:
         for nome_iperparametro, valore_iperparametro in migliori_iperparametri_quantistici.items():
             print(f"Miglior iperparametro quantistico per {nome_iperparametro}: {valore_iperparametro}")
             
@@ -113,9 +123,8 @@ def addestramento(nome_encoding, train_set_raw, test_set_raw, numero_features, m
             
     print(f"F1-Score (Macro) del miglior modello in {numero_fold_effettivo}-fold CV: {miglior_score * 100:.2f}% (± {miglior_std_score * 100:.2f}%)\n")
 
-    # SALVATAGGIO DEL FILE CON I RISULTATI DI OGNI COMBINAZIONE DI IPERPARAMETRI (codice nelle righe fatto interamente da Gemini).
+    # Salvataggio dei file con i risultati di ogni combinazione di iperparametri (file .xlsx).
     
-    # Salviamo direttamente in un file .xlsx, con le colonne belle larghe per leggere il testo, ed evidenziando la riga del modello vincente.
     df = pd.DataFrame(storico_risultati_addestramento)
 
     df["iperparametri_quantistici"] = df["iperparametri_quantistici"].astype(str)
@@ -149,5 +158,4 @@ def addestramento(nome_encoding, train_set_raw, test_set_raw, numero_features, m
 
             foglio.cell(row=riga_excel, column=col).fill = riempimento_giallo
 
-        
     return miglior_set_adattato, migliori_matrici_gram, miglior_modello, storico_risultati_addestramento

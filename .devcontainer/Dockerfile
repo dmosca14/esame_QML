@@ -3,6 +3,7 @@ FROM python:3.12-slim
 RUN apt-get update && apt-get install -y \
     build-essential \
     libgomp1 \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir \
@@ -26,7 +27,8 @@ RUN pip install --no-cache-dir \
     openpyxl \
     joblib
 
-# Configurazione ottimale per evitare conflitti con joblib
+# Configurazione ottimale per evitare conflitti con joblib.
+
 ENV OMP_NUM_THREADS=1
 ENV MKL_NUM_THREADS=1
 ENV OPENBLAS_NUM_THREADS=1

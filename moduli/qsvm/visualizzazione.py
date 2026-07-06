@@ -7,21 +7,16 @@ from tabulate import tabulate
 
 def test_e_visualizzazione(nome_encoding, set_adattato, matrici_gram, modello, nome_cartella, nome_dataset=""):
 
-    # ESTRAZIONE DEI DATI.
     train_set_adattato, test_set_adattato = set_adattato
     _, y_train_adattato = train_set_adattato
     _, y_test_adattato = test_set_adattato
     
     matrice_gram_train, matrice_gram_test = matrici_gram
 
-   # TEST DEL MODELLO SUL TEST SET. 
+   # Test del modello sul test set.
     
     predizioni_test = modello.predict(matrice_gram_test)
     report_dict = classification_report(y_test_adattato, predizioni_test, output_dict = True, zero_division = 0)
-
-    # Da qui in poi, essendo una parte puramente fatta di grafici, il codice è stato fatto interamente da Gemini.
-
-    # ------------
 
     tabella = []
     for chiave, valori in report_dict.items():
@@ -70,7 +65,5 @@ def test_e_visualizzazione(nome_encoding, set_adattato, matrici_gram, modello, n
     percorso_grafico = os.path.join(nome_cartella, "grafici_modello_ottimo_"+nome_dataset+".svg")
     plt.savefig(percorso_grafico, dpi=300)
     plt.show()
-
-    # ------------
 
     return tabella_formattata

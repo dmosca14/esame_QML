@@ -6,6 +6,7 @@ from .base import applica_minmax_con_margine, alloca_device
 nome_encoding = "Projected Quantum Kernel"
 
 def kernel(train_set, test_set, numero_features, gamma=1.0, numero_layer=1):
+    
     margine = 0.05 * np.pi
     train_adattato, test_adattato = applica_minmax_con_margine(
         train_set, test_set, feature_range=(margine, np.pi - margine), limite_inf=0.0, limite_sup=np.pi

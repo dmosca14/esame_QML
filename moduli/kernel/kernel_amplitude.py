@@ -6,6 +6,7 @@ from .base import alloca_device, calcola_matrici_gram_fedelta
 nome_encoding = "Amplitude Encoding"
 
 def kernel(train_set, test_set, numero_features):
+    
     X_train_scalato = normalize(train_set[0], norm="l2")
     X_test_scalato = normalize(test_set[0], norm="l2")
 

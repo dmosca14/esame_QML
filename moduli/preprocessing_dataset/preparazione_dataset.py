@@ -8,17 +8,19 @@ def prepara_dataset(train_set, test_set, numero_features):
     
     numero_features_originali_dataset = X_train_importato.shape[1]
 
-    # per aggiornare e ritornare il numero di feature corretto per il dataset corrente
+    # Per aggiornare e ritornare il numero di feature corretto per il dataset corrente.
+
     if numero_features > numero_features_originali_dataset:
         numero_features = numero_features_originali_dataset
         
+    # Fit solo su train, solo transform su test.
 
-    # fit solo su train, solo transform su test
     scaler = StandardScaler() 
     X_train_scalato = scaler.fit_transform(X_train_importato) 
     X_test_scalato = scaler.transform(X_test_importato)
 
-    # fit solo su train, solo transform su test
+    # Fit solo su train, solo transform su test.
+    
     pca = PCA(n_components = numero_features)
     X_train_preparato = pca.fit_transform(X_train_scalato)
     X_test_preparato = pca.transform(X_test_scalato)
