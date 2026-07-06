@@ -3,15 +3,14 @@ import numpy as np
 def kernel_target_alignment(K, y):
     y = np.asarray(y).flatten()
     
-    # Conversione a {-1, +1}: la formula del KTA richiede label bipolari.
-    # Gestisce sia y già in {-1,1} sia y in {0,1} (o altre due etichette qualsiasi).
+    # Conversione a {-1, +1}
     valori_unici = np.unique(y)
     if not np.array_equal(np.sort(valori_unici), np.array([-1, 1])):
         if len(valori_unici) != 2:
             raise ValueError("kernel_target_alignment richiede un problema a 2 classi.")
         y = np.where(y == valori_unici[0], -1, 1)
     
-    # Matrice target ideale y * y^T
+    # Matrice target y * y^T
     Y_target = np.outer(y, y)
     
     # Prodotto interno di Frobenius tra K e Y_target
@@ -29,18 +28,15 @@ def kernel_target_alignment(K, y):
 def coefficiente_geometrico(K_classico, K_quantistico, lambda_reg=1e-6):
     N = K_classico.shape[0]
     
-    # Regolarizzazione del kernel quantistico per l'inversione
     K_q_reg = K_quantistico + lambda_reg * np.eye(N)
     
     # Calcolo dell'inversa del kernel quantistico
     try:
         K_q_inv = np.linalg.inv(K_q_reg)
     except np.linalg.LinAlgError:
-        # Pseudo-inversa come fallback se la matrice è troppo mal condizionata
         K_q_inv = np.linalg.pinv(K_q_reg)
         
     # Calcolo della radice quadrata del kernel classico
-    # Poiché K_c è semi-definita positiva, usiamo la decomposizione spettrale
     eigvals_c, eigvecs_c = np.linalg.eigh(K_classico)
     
     # Tronca eventuali autovalori negativi dovuti a errori numerici
