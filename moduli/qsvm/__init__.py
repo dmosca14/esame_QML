@@ -1,1 +1,0 @@
-from .qsvm import costruisci_qsvm
