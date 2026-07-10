@@ -121,7 +121,7 @@ def train_model(dataset_name,
                                   "SVM_hyperparameters": SVM_hyperparameters_combination,
                                   "F1_score_macro(%)": round(average_val_score * 100, 2), 
                                   "F1_score_std_CV(%)": round(std_val_score * 100, 2), 
-                                  "tempo_calcolo_kernel(s)": round(kernel_total_time),
+                                  "kernel_calculation_time(s)": round(kernel_total_time),
                                   }
                 
                 training_results_history.append(current_result)
